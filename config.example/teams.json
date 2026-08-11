@@ -1,0 +1,178 @@
+{
+  "teams": [
+    {
+      "id": "na-clown9",
+      "name": "Clown9",
+      "tricode": "C9",
+      "logo": "https://i.ibb.co/xSgSxLK5/C9.png"
+    },
+    {
+      "id": "na-cow-paulo-fan-club",
+      "name": "cow paulo FaN Club",
+      "tricode": "FNC",
+      "logo": "https://i.ibb.co/9mfTbXvj/FNC.png"
+    },
+    {
+      "id": "na-i-hate-odin-party",
+      "name": "I Hate Odin Party",
+      "tricode": "IHOP",
+      "logo": "https://i.ibb.co/C3TVyKpm/IHOP.png"
+    },
+    {
+      "id": "na-furry-squirrels-gaming",
+      "name": "Furry Squirrels Gaming",
+      "tricode": "FSG",
+      "logo": "https://i.ibb.co/Kpc2PRZy/FSG.png"
+    },
+    {
+      "id": "na-squirtle-squad-gaming",
+      "name": "Squirtle Squad Gaming",
+      "tricode": "SSG",
+      "logo": "https://i.ibb.co/CpQ0qkdL/SSG.png"
+    },
+    {
+      "id": "na-rage-re-queuers",
+      "name": "Rage Re-Queuers",
+      "tricode": "RRQ",
+      "logo": "https://i.ibb.co/rRpP8PmD/rage-re-queuers.png"
+    },
+    {
+      "id": "na-team-dyslexia",
+      "name": "Team Dyslexia",
+      "tricode": "TL",
+      "logo": "https://i.ibb.co/xKMtfLr7/sketch1778252795826.png"
+    },
+    {
+      "id": "na-team-1",
+      "name": "Team 1",
+      "tricode": "T1",
+      "logo": "https://i.ibb.co/FqxBzgf3/t1.png"
+    },
+    {
+      "id": "na-spank-ptheory-gaming",
+      "name": "Spank Ptheory Gaming",
+      "tricode": "SPG",
+      "logo": "https://i.ibb.co/bgBCZvQJ/SPG.png"
+    },
+    {
+      "id": "na-sunshine-and-rainbows",
+      "name": "Sunshine and Rainbows",
+      "tricode": "SRB",
+      "logo": "https://i.ibb.co/1JT31M5T/SRB.png"
+    },
+    {
+      "id": "na-team-entropy",
+      "name": "Team Entropy",
+      "tricode": "EPY",
+      "logo": "https://i.ibb.co/ynJMjnPX/EPY.png"
+    },
+    {
+      "id": "na-100-tonys",
+      "name": "100 Tony's",
+      "tricode": "100T",
+      "logo": "https://i.ibb.co/ynZzdsLt/100T.png"
+    },
+    {
+      "id": "na-dementia-found-me",
+      "name": "Dementia Found Me",
+      "tricode": "DFM",
+      "logo": "https://i.ibb.co/WW3YDRS8/dfm.png"
+    },
+    {
+      "id": "na-no-actual-valorant-intelligence",
+      "name": "No Actual Valorant Intelligence",
+      "tricode": "NAVI",
+      "logo": "https://i.ibb.co/8nj95wLK/NAVI.png"
+    },
+    {
+      "id": "na-beautiful-and-kinda-adorable",
+      "name": "Beautiful and Kinda Adorable",
+      "tricode": "BAKA",
+      "logo": "https://i.ibb.co/0y8C4vKL/baka.png"
+    },
+    {
+      "id": "na-team-slugshow",
+      "name": "Team Slugshow",
+      "tricode": "TS",
+      "logo": "https://i.ibb.co/Psfzj837/TS.png"
+    },
+    {
+      "id": "team-plat-chat",
+      "name": "Team Plat Chat",
+      "tricode": "PLAT",
+      "logo": "https://i.ibb.co/Q3Z8gv0d/Plat-Chat.png"
+    },
+    {
+      "id": "na-just-dudes-gaming",
+      "name": "Just Dudes Gaming",
+      "tricode": "JDG",
+      "logo": "https://i.ibb.co/Z6Td4X74/jdg.png"
+    },
+    {
+      "id": "eu-fabulous-and-zesty",
+      "name": "Fabulous and Zesty",
+      "tricode": "FAZE",
+      "logo": "https://i.ibb.co/bRW57pBD/image-2026-07-04-233440143.png"
+    },
+    {
+      "id": "eu-atlntic-esports",
+      "name": "ATLNTIC Esports",
+      "tricode": "ATLC",
+      "logo": "https://i.ibb.co/WjbjRTW/image.png"
+    },
+    {
+      "id": "eu-honestly-outrageous-temperatures",
+      "name": "Honestly Outrageous Temperatures",
+      "tricode": "HOT",
+      "logo": "https://i.ibb.co/SDDFVtDp/image-2026-07-04-233540328.png"
+    },
+    {
+      "id": "eu-name-in-progress",
+      "name": "Name in Progress",
+      "tricode": "NIP",
+      "logo": "https://i.ibb.co/v6nbz9d0/image-2026-07-04-233621087.png"
+    },
+    {
+      "id": "eu-xually-terribly-cursed",
+      "name": "Xually Terribly Cursed",
+      "tricode": "XTC",
+      "logo": "https://i.ibb.co/d0tZ17hk/image-2026-07-04-233656624.png"
+    },
+    {
+      "id": "eu-stay-seally",
+      "name": "Stay Seally",
+      "tricode": "SEAL",
+      "logo": "https://i.ibb.co/m5JCYJmf/image-2026-07-29-232811921.png"
+    },
+    {
+      "id": "eu-never-available-to-scrim",
+      "name": "Never Available to Scrim",
+      "tricode": "NATS",
+      "logo": "https://i.ibb.co/KjLYGyqc/image-2026-07-29-232841438.png"
+    },
+    {
+      "id": "eu-larpiatan",
+      "name": "Larpiatán",
+      "tricode": "LARP",
+      "logo": "https://i.ibb.co/gbvxjc7z/image-2026-07-04-233808232.png"
+    },
+    {
+      "id": "eu-penguin-patrol",
+      "name": "Penguin Patrol",
+      "tricode": "NOOT",
+      "logo": "https://i.ibb.co/vCRhmnx6/image-2026-07-04-233830574.png"
+    },
+    {
+      "id": "eu-the-sog",
+      "name": "The SOG",
+      "tricode": "SOG",
+      "logo": "https://i.ibb.co/3y4rYfFR/image.png"
+    },
+    {
+      "id": "eu-weatherspoons-football-club",
+      "name": "Weatherspoons Football Club",
+      "tricode": "WFC",
+      "logo": "https://i.ibb.co/PvCDdW2C/image-2026-07-04-231414761.png"
+    }
+  ]
+}

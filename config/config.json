@@ -1,0 +1,9 @@
+{
+  "organizationName": "PCMT",
+  "publicBaseUrl": "https://pcmtmapban.ianmlxdesign.ca",
+  "spectraOverlayBaseUrl": "",
+  "sessionLifetimeHours": 48,
+  "sessionIdLength": 6,
+  "allowManualTeams": true,
+  "secretKey": "change-this-to-a-long-random-secret-key-before-production"
+}

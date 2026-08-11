@@ -1,0 +1,65 @@
+{
+  "maps": [
+    {
+      "id": "abyss",
+      "name": "Abyss"
+    },
+    {
+      "id": "ascent",
+      "name": "Ascent"
+    },
+    {
+      "id": "bind",
+      "name": "Bind"
+    },
+    {
+      "id": "breeze",
+      "name": "Breeze"
+    },
+    {
+      "id": "corrode",
+      "name": "Corrode"
+    },
+    {
+      "id": "fracture",
+      "name": "Fracture"
+    },
+    {
+      "id": "haven",
+      "name": "Haven"
+    },
+    {
+      "id": "icebox",
+      "name": "Icebox"
+    },
+    {
+      "id": "lotus",
+      "name": "Lotus"
+    },
+    {
+      "id": "pearl",
+      "name": "Pearl"
+    },
+    {
+      "id": "split",
+      "name": "Split"
+    },
+    {
+      "id": "summit",
+      "name": "Summit"
+    },
+    {
+      "id": "sunset",
+      "name": "Sunset"
+    }
+  ],
+  "defaultPool": [
+    "ascent",
+    "breeze",
+    "haven",
+    "lotus",
+    "split",
+    "summit",
+    "sunset"
+  ]
+}

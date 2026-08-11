@@ -1,0 +1,47 @@
+name: Test and Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Compile Python sources
+        run: python -m compileall app tests
+
+      - name: Run veto tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Validate configuration
+        env:
+          CONFIG_DIR: ${{ github.workspace }}/config
+        run: |
+          python - <<'PY'
+          from app.config import ConfigManager
+          config = ConfigManager()
+          assert len(config.loaded.default_pool) == 7
+          print("Configuration is valid.")
+          PY
+
+      - name: Build Docker image
+        run: docker build -t spectra-mapban-ci .
