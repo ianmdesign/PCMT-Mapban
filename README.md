@@ -227,7 +227,7 @@ Set `DISCORD_WEBHOOK_URL` as an environment variable in the mapban container. Wi
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN
 ```
 
-The URL stays on the server. Once a veto is complete, the admin page shows **Publish to Discord** only when a valid Discord webhook URL is configured. Clicking it sends one embed with the matchup, selected maps in order, starting sides, and bans; scores are omitted. A successful post is recorded with the session so an accidental second click cannot send another copy. If the producer undoes the final veto action or resets the veto, the next completed veto can be posted again. An empty or invalid URL hides the button.
+The URL stays on the server. Once a veto is complete, the admin page shows **Publish to Discord** only when a valid Discord webhook URL is configured. Clicking it sends one embed with the matchup and every ban, pick, and starting-side choice in draft order; scores are omitted. A successful post is recorded with the session so an accidental second click cannot send another copy. If the producer undoes the final veto action or resets the veto, the next completed veto can be posted again. An empty or invalid URL hides the button.
 
 ## Persistent data
 

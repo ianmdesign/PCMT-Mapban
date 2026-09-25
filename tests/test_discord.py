@@ -23,7 +23,9 @@ with patch.dict(os.environ, {"CONFIG_DIR": str(ROOT / "config"), "DATA_DIR": _im
     from app import main
 
 
-def make_session(fmt: str = "bo3", *, complete: bool = True) -> dict:
+def make_session(
+    fmt: str = "bo3", *, complete: bool = True, history: list[dict] | None = None
+) -> dict:
     created = int(time.time())
     session = {
         "id": "TEST01",
@@ -43,12 +45,23 @@ def make_session(fmt: str = "bo3", *, complete: bool = True) -> dict:
     }
     if complete:
         while turn := current_turn(session):
-            session, _, _ = apply_action(
+            before = session
+            session, kind, summary = apply_action(
                 session,
                 acting_team_id=turn["teamId"],
                 map_id=available_maps(session)[0]["id"] if turn["phase"] == "map" else None,
                 side="attack" if turn["phase"] == "side" else None,
             )
+            if history is not None:
+                history.append({
+                    "sequence": len(history) + 1,
+                    "actor_team_id": turn["teamId"],
+                    "submitted_by": f"team:{turn['teamId']}",
+                    "action_kind": kind,
+                    "summary": summary,
+                    "before": before,
+                    "after": session,
+                })
         for item in session["veto"]["maps"]:
             if item["status"] in ("picked", "decider"):
                 item["score"] = [13, 9]
@@ -56,17 +69,24 @@ def make_session(fmt: str = "bo3", *, complete: bool = True) -> dict:
 
 
 class DiscordEmbedTests(unittest.TestCase):
-    def test_embed_shows_selected_maps_in_order_and_bans_without_scores(self) -> None:
-        for fmt, expected_maps in (("bo1", 1), ("bo3", 3), ("bo5", 5)):
+    def test_embed_follows_the_draft_order_without_scores(self) -> None:
+        for fmt in ("bo1", "bo3", "bo5"):
             with self.subTest(fmt=fmt):
-                payload = veto_embed(make_session(fmt))
+                history: list[dict] = []
+                session = make_session(fmt, history=history)
+                payload = veto_embed(session, list(reversed(history)))
                 fields = payload["embeds"][0]["fields"]
-                self.assertEqual(len(fields), expected_maps + 1)
-                self.assertTrue(fields[0]["name"].startswith("Map 1 · "))
-                self.assertIn("Attack:", fields[0]["value"])
-                self.assertIn("Decider", fields[expected_maps - 1]["value"])
-                self.assertEqual(fields[-1]["name"], "Banned maps")
-                self.assertIn("ALP ban", fields[-1]["value"])
+                self.assertEqual(
+                    [field["value"].split("\n")[0] for field in fields],
+                    [action["summary"] for action in history],
+                )
+                self.assertEqual(fields[0]["name"], "1 · Ban")
+                self.assertEqual(fields[-1]["name"], f"{len(history)} · Decider side")
+                self.assertIn("Attack: ALP · Defense: BRV", fields[-1]["value"])
+                if fmt != "bo1":
+                    self.assertEqual(fields[2]["name"], "3 · Pick")
+                    self.assertEqual(fields[3]["name"], "4 · Starting side")
+                    self.assertIn("Attack: BRV · Defense: ALP", fields[3]["value"])
                 self.assertNotIn("score", json.dumps(payload).lower())
                 self.assertNotIn("13 – 9", json.dumps(payload))
                 self.assertEqual(payload["allowed_mentions"], {"parse": []})
@@ -91,7 +111,8 @@ class DiscordEmbedTests(unittest.TestCase):
             def read(self, *_):
                 return b'{"id":"posted-message"}'
 
-        payload = veto_embed(make_session())
+        history: list[dict] = []
+        payload = veto_embed(make_session(history=history), history)
         with patch("app.discord.urlopen", return_value=Response()) as post:
             send_webhook(URL, payload)
         request = post.call_args.args[0]
@@ -100,9 +121,11 @@ class DiscordEmbedTests(unittest.TestCase):
         self.assertEqual(json.loads(request.data), payload)
 
     def test_webhook_failure_does_not_expose_the_webhook_token(self) -> None:
+        history: list[dict] = []
+        payload = veto_embed(make_session(history=history), history)
         with patch("app.discord.urlopen", side_effect=HTTPError(URL, 404, "missing", None, None)):
             with self.assertRaises(DiscordPublishError) as raised:
-                send_webhook(URL, veto_embed(make_session()))
+                send_webhook(URL, payload)
         self.assertIn("404", str(raised.exception))
         self.assertNotIn("example-token", str(raised.exception))
 
@@ -125,8 +148,20 @@ class DiscordPublishTests(unittest.IsolatedAsyncioTestCase):
         self.broadcast_patch.start()
         self.addCleanup(self.broadcast_patch.stop)
 
-        self.session = make_session()
+        self.history: list[dict] = []
+        self.session = make_session(history=self.history)
         self.db.create_session(self.session["id"], self.session)
+        for action in self.history:
+            self.db.append_action(
+                session_id=self.session["id"],
+                sequence=action["sequence"],
+                actor_team_id=action["actor_team_id"],
+                submitted_by=action["submitted_by"],
+                action_kind=action["action_kind"],
+                summary=action["summary"],
+                before=action["before"],
+                after=action["after"],
+            )
         self.admin_header = f"Bearer {main.admin_token(self.session)}"
 
     async def test_button_is_only_enabled_for_completed_admin_sessions_with_webhook(self) -> None:
@@ -154,6 +189,11 @@ class DiscordPublishTests(unittest.IsolatedAsyncioTestCase):
     async def test_success_is_persisted_and_second_click_does_not_send_again(self) -> None:
         view = await main.publish_discord("TEST01", authorization=self.admin_header)
         self.send_mock.assert_called_once()
+        posted_fields = self.send_mock.call_args.args[1]["embeds"][0]["fields"]
+        self.assertEqual(
+            [field["value"].split("\n")[0] for field in posted_fields],
+            [action["summary"] for action in self.history],
+        )
         self.assertFalse(view["permissions"]["canPublishDiscord"])
         self.assertTrue(view["discordPublishedAt"])
         self.assertEqual(self.db.get_session("TEST01")["discordPublishedAt"], view["discordPublishedAt"])

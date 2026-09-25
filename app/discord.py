@@ -40,41 +40,47 @@ def _label(value: Any, limit: int = 100) -> str:
     return str(value or "").replace("\r", " ").replace("\n", " ").strip()[:limit]
 
 
-def veto_embed(session: dict[str, Any]) -> dict[str, Any]:
+def veto_embed(session: dict[str, Any], history: list[dict[str, Any]]) -> dict[str, Any]:
     teams = sorted(session["teams"], key=lambda team: team["slot"])
-    by_id = {team["id"]: team for team in teams}
-    maps = sorted(session["veto"]["maps"], key=lambda item: item["order"])
-    selected = [item for item in maps if item["status"] in ("picked", "decider")]
-    banned = [item for item in maps if item["status"] == "banned"]
-
+    actions = sorted(history, key=lambda item: item["sequence"])
+    maps = sorted(
+        (item for item in session["veto"]["maps"] if item["order"] is not None),
+        key=lambda item: item["order"],
+    )
+    picked_maps = iter(item for item in maps if item["status"] == "picked")
+    decider = next((item for item in maps if item["status"] == "decider"), None)
+    current_pick = None
     fields: list[dict[str, Any]] = []
-    for index, item in enumerate(selected, 1):
-        picker = by_id.get(item.get("pickedByTeamId"))
-        side_picker = by_id.get(item.get("sidePickedByTeamId"))
-        other = next((team for team in teams if team is not side_picker), None)
-        lines = [
-            "Decider" if item["status"] == "decider" else f"Picked by {_label(picker['name'], 80)}"
-        ]
-        if side_picker and other and item.get("pickedAttack") is not None:
-            attacker = side_picker if item["pickedAttack"] else other
-            defender = other if item["pickedAttack"] else side_picker
-            lines.append(
-                f"Attack: {_label(attacker['tricode'], 12)} · Defense: {_label(defender['tricode'], 12)}"
-            )
+    for index, item in enumerate(actions, 1):
+        kind = item["action_kind"]
+        label = {"ban": "Ban", "pick": "Pick", "side": "Starting side"}.get(kind, "Veto action")
+        if index == len(actions) and kind == "side":
+            label = "Decider side"
+        if kind == "pick":
+            current_pick = next(picked_maps, None)
+        value = _label(item["summary"], 1024)
+        if kind == "side":
+            side_map = decider if label == "Decider side" else current_pick
+            if side_map:
+                side_picker = next(
+                    (team for team in teams if team["id"] == side_map.get("sidePickedByTeamId")),
+                    None,
+                )
+                other = next((team for team in teams if team is not side_picker), None)
+                if side_picker and other and side_map.get("pickedAttack") is not None:
+                    attacker = side_picker if side_map["pickedAttack"] else other
+                    defender = other if side_map["pickedAttack"] else side_picker
+                    value += (
+                        f"\nAttack: {_label(attacker['tricode'], 12)}"
+                        f" · Defense: {_label(defender['tricode'], 12)}"
+                    )
         fields.append(
             {
-                "name": f"Map {index} · {_label(item['name'], 180)}",
-                "value": "\n".join(lines),
+                "name": f"{index} · {label}",
+                "value": value[:1024],
                 "inline": False,
             }
         )
-
-    if banned:
-        bans = [
-            f"{_label(item['name'], 100)} — {_label(by_id[item['bannedByTeamId']]['tricode'], 12)} ban"
-            for item in banned
-        ]
-        fields.append({"name": "Banned maps", "value": "\n".join(bans)[:1024], "inline": False})
 
     return {
         "allowed_mentions": {"parse": []},

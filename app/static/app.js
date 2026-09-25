@@ -574,7 +574,7 @@
           ${setupMatchup(a, b, '')}
           ${currentState.permissions.discordWebhookEnabled ? `
             <section class="discord-publish-block">
-              <div><h2>Share the map veto</h2><p>Post the picks, bans, and starting sides to Discord. Scores are omitted.</p></div>
+              <h2>Share the map veto</h2>
               <button id="publish-discord" class="spectra-button neutral" ${currentState.permissions.canPublishDiscord ? '' : 'disabled'}>${currentState.discordPublishedAt ? 'Published to Discord' : 'Publish to Discord'}</button>
             </section>` : ''}
           <section class="complete-score-block">

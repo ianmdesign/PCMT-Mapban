@@ -658,7 +658,7 @@ async def publish_discord(
             raise HTTPException(status_code=409, detail="This map veto was already posted to Discord")
 
         try:
-            await asyncio.to_thread(send_webhook, url, veto_embed(session))
+            await asyncio.to_thread(send_webhook, url, veto_embed(session, db.history(session["id"])))
         except DiscordPublishError as exc:
             raise HTTPException(status_code=502, detail=str(exc)) from exc
 
