@@ -262,6 +262,7 @@ def reset_veto(session: dict[str, Any]) -> dict[str, Any]:
     updated["vetoStartedAt"] = None
     updated["setupRequired"] = True
     updated["status"] = "configuring"
+    updated.pop("discordPublishedAt", None)
     return updated
 
 

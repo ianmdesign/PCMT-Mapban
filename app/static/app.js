@@ -572,6 +572,11 @@
         ${brandMarkup(currentState.organizationName)}
         <section class="setup-stage complete-stage">
           ${setupMatchup(a, b, '')}
+          ${currentState.permissions.discordWebhookEnabled ? `
+            <section class="discord-publish-block">
+              <div><h2>Share the map veto</h2><p>Post the picks, bans, and starting sides to Discord. Scores are omitted.</p></div>
+              <button id="publish-discord" class="spectra-button neutral" ${currentState.permissions.canPublishDiscord ? '' : 'disabled'}>${currentState.discordPublishedAt ? 'Published to Discord' : 'Publish to Discord'}</button>
+            </section>` : ''}
           <section class="complete-score-block">
             <h1>All Maps Selected</h1>
             <p>You can now enter scores once maps are completed.</p>
@@ -650,6 +655,25 @@
       }
     }
 
+    async function publishDiscord() {
+      const button = document.getElementById('publish-discord');
+      if (!button || !currentState.permissions.canPublishDiscord) return;
+      button.disabled = true;
+      button.textContent = 'Publishing…';
+      try {
+        currentState = await api(`/api/sessions/${currentState.sessionId}/publish-discord`, {
+          method: 'POST',
+          headers: authHeaders(),
+        });
+        render();
+        toast('Map veto posted to Discord');
+      } catch (error) {
+        toast(error.message);
+        button.disabled = false;
+        button.textContent = 'Publish to Discord';
+      }
+    }
+
     function historyMarkup() {
       if (!currentState.history.length) return '<p class="muted">No veto actions yet.</p>';
       return `<div class="history">${currentState.history.map(item => `<div class="history-item"><strong>${escapeHtml(item.summary)}</strong><span>${item.submitted_by === 'admin' ? 'Producer' : 'Team'}</span></div>`).join('')}</div>`;
@@ -706,6 +730,7 @@
       document.getElementById('undo-action')?.addEventListener('click', undo);
       document.getElementById('reset-veto')?.addEventListener('click', reset);
       document.getElementById('save-scores')?.addEventListener('click', saveScores);
+      document.getElementById('publish-discord')?.addEventListener('click', publishDiscord);
       bindCopyButtons();
     }
 

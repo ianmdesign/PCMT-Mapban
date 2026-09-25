@@ -19,6 +19,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import ConfigError, ConfigManager
 from .db import Database
+from .discord import DiscordPublishError, send_webhook, veto_embed, webhook_url
 from .spectra import spectra_view
 from .veto import (
     VetoError,
@@ -178,6 +179,7 @@ def app_view(
     turn = current_turn(session) if (not setup_required and started) else None
     teams = sorted(session["teams"], key=lambda item: item["slot"])
     history = db.history(session["id"])
+    discord_enabled = role == "admin" and bool(webhook_url())
     result: dict[str, Any] = {
         "sessionId": session["id"],
         "organizationName": session["organizationName"],
@@ -215,10 +217,15 @@ def app_view(
             "canUndo": role == "admin" and bool(history) and started and not setup_required,
             "canReset": role == "admin",
             "canEditScores": role == "admin" and started and not setup_required,
+            "discordWebhookEnabled": discord_enabled,
+            "canPublishDiscord": discord_enabled
+            and session["status"] == "complete"
+            and not session.get("discordPublishedAt"),
         },
     }
     if role == "admin":
         result["links"] = session_links(session)
+        result["discordPublishedAt"] = session.get("discordPublishedAt")
     return result
 
 
@@ -630,6 +637,32 @@ async def set_scores(
         except VetoError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+        db.save_session(session)
+    await broadcast_session(session)
+    return app_view(session, role="admin")
+
+
+@app.post("/api/sessions/{session_id}/publish-discord")
+async def publish_discord(
+    session_id: str, authorization: str | None = Header(default=None)
+) -> dict[str, Any]:
+    async with lock_for(session_id.upper()):
+        session = get_session_or_404(session_id)
+        require_admin(session, authorization)
+        url = webhook_url()
+        if not url:
+            raise HTTPException(status_code=503, detail="Discord webhook is not configured")
+        if session["status"] != "complete" or current_turn(session) is not None:
+            raise HTTPException(status_code=409, detail="Complete the map veto before publishing")
+        if session.get("discordPublishedAt"):
+            raise HTTPException(status_code=409, detail="This map veto was already posted to Discord")
+
+        try:
+            await asyncio.to_thread(send_webhook, url, veto_embed(session))
+        except DiscordPublishError as exc:
+            raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+        session["discordPublishedAt"] = now_ts()
         db.save_session(session)
     await broadcast_session(session)
     return app_view(session, role="admin")

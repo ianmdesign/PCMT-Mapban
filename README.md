@@ -219,6 +219,16 @@ docker compose up -d
 
 Because the Compose service has both `image:` and `build:`, use `docker compose up -d --build` when intentionally building locally. Normal release deployments can pull the GHCR image.
 
+### Optional Discord map veto post
+
+Set `DISCORD_WEBHOOK_URL` as an environment variable in the mapban container. With Docker Compose, put it in the local `.env` file alongside `MAPBAN_IMAGE`:
+
+```env
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN
+```
+
+The URL stays on the server. Once a veto is complete, the admin page shows **Publish to Discord** only when a valid Discord webhook URL is configured. Clicking it sends one embed with the matchup, selected maps in order, starting sides, and bans; scores are omitted. A successful post is recorded with the session so an accidental second click cannot send another copy. If the producer undoes the final veto action or resets the veto, the next completed veto can be posted again. An empty or invalid URL hides the button.
+
 ## Persistent data
 
 `./data` is mounted to `/data` and contains `mapban.sqlite3`. Sessions have an `expiresAt` value calculated at creation. The service deletes expired sessions during startup and then hourly.
@@ -288,7 +298,8 @@ The compatibility payload intentionally reports `isSupporter: false`; it does no
 5. Share the team links and prepare the Spectra overlay at any time; team actions remain blocked while the session is configuring.
 6. Select exactly seven maps and press **Start Veto**. This locks setup and enables the first team action.
 7. During/after the veto the producer can act for the current team, undo the last veto action, and set per-map Team A/Team B scores. Saved scores are sent in the Spectra `selectedMaps[].score` payload.
-8. **Reset Veto** is available even before the first ban. Reset clears veto actions and scores, returns to Format & Map Pool, unlocks setup, and keeps the same teams, session ID, links, and original expiry.
+8. After the veto is complete, **Publish to Discord** posts the map outcome without scores if `DISCORD_WEBHOOK_URL` is configured.
+9. **Reset Veto** is available even before the first ban. Reset clears veto actions and scores, returns to Format & Map Pool, unlocks setup, and keeps the same teams, session ID, links, and original expiry.
 
 ## Development checks
 
