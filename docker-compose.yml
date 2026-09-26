@@ -11,6 +11,7 @@ services:
       DATA_DIR: /data
       PORT: 5300
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
+      SPECTRA_ORGANIZATION_CODE: ${SPECTRA_ORGANIZATION_CODE:-}
     volumes:
       - ./config:/app/config:ro
       - ./data:/data

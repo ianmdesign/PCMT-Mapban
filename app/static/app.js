@@ -1,6 +1,7 @@
 (() => {
   const app = document.getElementById('app');
   const toastEl = document.getElementById('toast');
+  let adminCsrfToken = '';
 
   let toastTimer;
   function toast(message) {
@@ -20,7 +21,9 @@
   }
 
   async function api(url, options = {}) {
-    const response = await fetch(url, options);
+    const headers = { ...(options.headers || {}) };
+    if (url === '/api/sessions' && options.method === 'POST') headers['X-Admin-CSRF'] = adminCsrfToken;
+    const response = await fetch(url, { ...options, headers });
     const contentType = response.headers.get('content-type') || '';
     const body = contentType.includes('application/json') ? await response.json() : await response.text();
     if (!response.ok) {
@@ -68,6 +71,22 @@
 
   async function renderCreate() {
     setTheme('setup');
+    let login;
+    try { login = await api('/api/admin/session'); }
+    catch (error) {
+      app.innerHTML = `<div class="setup-error-wrap"><div class="error">${escapeHtml(error.message)}</div></div>`;
+      return;
+    }
+    if (!login.authenticated) { location.reload(); return; }
+    adminCsrfToken = login.csrfToken;
+    const logout = document.getElementById('admin-logout');
+    logout.classList.remove('hidden');
+    logout.addEventListener('click', async () => {
+      try {
+        await api('/api/admin/logout', { method: 'POST', headers: { 'X-Admin-CSRF': adminCsrfToken } });
+        location.reload();
+      } catch (error) { toast(error.message); }
+    });
     let options;
     try {
       options = await api('/api/session-options');

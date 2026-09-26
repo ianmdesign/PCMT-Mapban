@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>PCMT Mapban · Sign in</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body data-theme="setup">
+  <div class="brand"><span class="brand-copy"><strong>PCMT</strong><small>mapban</small></span></div>
+  <main class="admin-login-page">
+    <form id="admin-login-form" class="admin-login-card">
+      <h1>Open Mapban</h1>
+      <label for="organization-code">Spectra organization code</label>
+      <input id="organization-code" type="password" autocomplete="current-password" required autofocus>
+      <button class="spectra-button neutral" type="submit">Continue</button>
+      <p id="login-error" class="error" role="alert"></p>
+    </form>
+  </main>
+  <script src="/static/admin-login.js" defer></script>
+</body>
+</html>

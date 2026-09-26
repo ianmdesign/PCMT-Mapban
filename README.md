@@ -219,6 +219,12 @@ docker compose up -d
 
 Because the Compose service has both `image:` and `build:`, use `docker compose up -d --build` when intentionally building locally. Normal release deployments can pull the GHCR image.
 
+### Session creation password
+
+Set `SPECTRA_ORGANIZATION_CODE` to your existing Spectra organization code in the mapban container (or in your local `.env` when using Compose). Opening `/` asks for this code before team selection, and the server requires the saved login when creating a session. The browser remembers the login for 30 days with an HTTP-only cookie; it does not store the code itself. The signing key lives in the persistent `/data` volume. Existing admin and team links continue to work with their session tokens on other browsers without this cookie. If the environment variable is empty, session creation stays disabled.
+
+Serve the public hostname over HTTPS and enable **Force SSL** in Nginx Proxy Manager. The code is sent in an HTTPS POST body, never in a URL; public HTTP pages cannot submit it. Localhost development can use HTTP. The login page also sends an HSTS header for future visits.
+
 ### Optional Discord map veto post
 
 Set `DISCORD_WEBHOOK_URL` as an environment variable in the mapban container. With Docker Compose, put it in the local `.env` file alongside `MAPBAN_IMAGE`:
@@ -291,7 +297,7 @@ The compatibility payload intentionally reports `isSupporter: false`; it does no
 
 ## Producer workflow
 
-1. Open the map-ban site.
+1. Open the map-ban site and enter the Spectra organization code if this browser has not signed in.
 2. **Teams screen:** choose Team A and Team B from the configured dropdown or use manual entry.
 3. Press **Create Session & Continue**. The 48-hour session and all links are created immediately.
 4. **Format & Map Pool:** choose BO1/BO3/BO5, optional BO5 double-ban advantage, Team A/B order, and maps. Every change autosaves. You can close this page and reopen the admin link later without losing the draft.

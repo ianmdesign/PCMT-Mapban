@@ -14,9 +14,11 @@ from typing import Any
 
 import socketio
 from fastapi import FastAPI, Header, HTTPException, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
 
+from .admin_auth import AdminAuth
 from .config import ConfigError, ConfigManager
 from .db import Database
 from .discord import DiscordPublishError, send_webhook, veto_embed, webhook_url
@@ -39,6 +41,7 @@ STATIC_DIR = BASE_DIR / "static"
 
 config_manager = ConfigManager()
 db = Database()
+admin_auth = AdminAuth(db.data_dir, "pcmt_mapban_admin")
 
 app = FastAPI(title="Spectra Map Ban", version="1.0.0")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -48,6 +51,10 @@ application = socketio.ASGIApp(sio, other_asgi_app=app)
 
 mutation_locks: dict[str, asyncio.Lock] = {}
 cleanup_task: asyncio.Task | None = None
+
+
+class AdminLoginRequest(BaseModel):
+    password: str = Field(min_length=1, max_length=256)
 
 
 def lock_for(session_id: str) -> asyncio.Lock:
@@ -286,6 +293,25 @@ async def healthz() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/api/admin/session")
+async def admin_session(request: Request, response: Response) -> dict[str, Any]:
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Vary"] = "Cookie"
+    return admin_auth.status(request)
+
+
+@app.post("/api/admin/login")
+async def admin_login(payload: AdminLoginRequest, request: Request, response: Response) -> dict[str, Any]:
+    return admin_auth.login(request, response, payload.password)
+
+
+@app.post("/api/admin/logout")
+async def admin_logout(request: Request, response: Response) -> dict[str, bool]:
+    admin_auth.require(request)
+    admin_auth.logout(response)
+    return {"signedOut": True}
+
+
 @app.get("/api/session-options")
 async def session_options() -> dict[str, Any]:
     try:
@@ -339,6 +365,7 @@ def _make_session_team(raw: Any, slot: int) -> dict[str, Any]:
 
 @app.post("/api/sessions")
 async def create_session(request: Request) -> JSONResponse:
+    admin_auth.require(request)
     try:
         config_manager.reload()
     except ConfigError as exc:
@@ -409,7 +436,7 @@ async def create_session(request: Request) -> JSONResponse:
         "expiresAt": payload["expiresAt"],
         **session_links(payload),
     }
-    return JSONResponse(body, status_code=201)
+    return JSONResponse(body, status_code=201, headers={"Cache-Control": "no-store"})
 
 
 @app.get("/api/sessions/{session_id}/view")
@@ -749,8 +776,16 @@ async def spectra_logon(sid: str, data: Any) -> None:
 
 
 @app.get("/")
-async def index() -> FileResponse:
-    return FileResponse(STATIC_DIR / "index.html")
+async def index(request: Request) -> FileResponse:
+    page = "index.html" if admin_auth.authenticated(request) else "admin-login.html"
+    return FileResponse(
+        STATIC_DIR / page,
+        headers={
+            "Cache-Control": "no-store",
+            "Referrer-Policy": "no-referrer",
+            "Strict-Transport-Security": "max-age=31536000",
+        },
+    )
 
 
 @app.get("/session/{session_id}/admin/{token}")
